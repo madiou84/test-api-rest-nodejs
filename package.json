@@ -1,0 +1,24 @@
+{
+  "name": "test-api-rest-nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madiou84/test-api-rest-nodejs.git"
+  },
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "express"
+  ],
+  "scripts": {
+    "build": "webpack",
+    "test:watch": "jest --watch",
+    "test": "jest --testTimeout=10000",
+    "dev": "NODE_ENV=testing webpack --progress --profile --color",
+    "start:dev": "cross-env NODE_ENV=development node dist/main.bundle.js",
+    "start:prod": "cross-env NODE_ENV=production node dist/main.bundle.js"
+  },
+  "author": "Madiou BAH <mmadioubah@gmail.com>",
+  "license": "ISC"
+}
