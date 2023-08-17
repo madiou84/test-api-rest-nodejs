@@ -16,10 +16,7 @@ module.exports = {
     },
     module: {
         rules: [
-            {
-                test: /\.(ts|js)x?$/,
-                exclude: /node_modules/,
-            },
+            { test: /\.(ts|js)x?$/, exclude: /node_modules/, use: 'raw-loader' }
         ],
     },
     plugins: [
