@@ -5,18 +5,18 @@ const NodemonPlugin = require("nodemon-webpack-plugin");
 const { NODE_ENV = "production" } = process.env;
 
 module.exports = {
-    mode: (NODE_ENV === "testing" && "development") || 'none',
-    watch: NODE_ENV === "testing",
-    entry: "./src/server.ts",
     target: "node",
+    entry: "./src/index.ts",
+    mode: NODE_ENV || "none",
+    watch: NODE_ENV === "development",
     output: {
         libraryTarget: "commonjs2",
-        path: path.resolve(__dirname, "dist"),
         filename: "[name].bundle.js",
+        path: path.resolve(__dirname, "dist"),
     },
     module: {
         rules: [
-            { test: /\.(ts|js)x?$/, exclude: /node_modules/, use: 'raw-loader' }
+            { test: /\.(ts|js)x?$/, exclude: /node_modules/, use: 'ts-loader' },
         ],
     },
     plugins: [

@@ -2,6 +2,7 @@
 .idea/workspace.xml
 .vscode
 .webpack
+.yarn
 .webpackCache
 data
 # Logs

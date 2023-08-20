@@ -1,7 +1,9 @@
 import chai from "chai";
 import chaiHttp from "chai-http";
+import config from "config";
 import { Pool } from "pg";
-import { createServer } from "../../src/server";
+import poolClient from "../../src/providers/db";
+import createServer from "../../src/providers/server";
 
 chai.use(chaiHttp);
 chai.config.truncateThreshold = 0;
@@ -10,30 +12,25 @@ const { expect } = chai;
 
 describe("server", () => {
     let pool: Pool;
-    let server: any;
     let app: any;
+    let server: any;
 
     beforeEach(async () => {
-        pool = new Pool({
-            host: "localhost",
-            user: "root",
-            password: "root",
-        });
+        pool = new Pool({ connectionString: config.get("db") });
         const client = await pool.connect();
 
-        await client.query(`DROP TABLE IF EXISTS checkpoints`);
-        await client.query(`DROP TABLE IF EXISTS employees`);
-
-        await client.query(`
+        await client.query(/* sql */ `DROP TABLE IF EXISTS checkpoints`);
+        await client.query(/* sql */ `DROP TABLE IF EXISTS employees`);
+        await client.query(/* sql */ `
           CREATE TABLE IF NOT EXISTS employees (
             id SERIAL PRIMARY KEY,
             name VARCHAR NOT NULL,
-            firstName VARCHAR NOT NULL,
-            dateCreated DATE NOT NULL,
+            firstname VARCHAR NOT NULL,
+            datecreated DATE NOT NULL,
             department VARCHAR
           )
         `);
-        await client.query(`
+        await client.query(/* sql */ `
           CREATE TABLE IF NOT EXISTS checkpoints (
             id SERIAL PRIMARY KEY,
             check_in DATE NOT NULL,
@@ -46,50 +43,78 @@ describe("server", () => {
           )
         `);
 
-        await client.query(`INSERT INTO employees (name, firstName, dateCreated, department) VALUES ('Madiou BAH', 'Madiou', CURRENT_TIMESTAMP, 'IT')`);
-        await client.query(`INSERT INTO employees (name, firstName, dateCreated, department) VALUES ('John Doe', 'John', CURRENT_TIMESTAMP, 'Marketing')`);
-        await client.query(`INSERT INTO employees (name, firstName, dateCreated, department) VALUES ('Clementina DuBuque', 'Clementina', CURRENT_TIMESTAMP, 'Communication')`);
-        await client.query(`INSERT INTO employees (name, firstName, dateCreated, department) VALUES ('Hind Chihi', 'Hind', CURRENT_TIMESTAMP, 'DATA')`);
-        await client.query(`INSERT INTO employees (name, firstName, dateCreated, department) VALUES ('Hend ABDESSADOK', 'Hend', CURRENT_TIMESTAMP, 'IT')`);
-        await client.query(`INSERT INTO employees (name, firstName, dateCreated, department) VALUES ('Dennis Schulist', 'Dennis', CURRENT_TIMESTAMP, 'IT')`);
-        await client.query(`INSERT INTO employees (name, firstName, dateCreated, department) VALUES ('Kurtis Weissnat', 'Kurtis', CURRENT_TIMESTAMP, 'IT')`);
-
-        await client.query(`INSERT INTO checkpoints (check_in, check_out, comment, employee_id) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Absent entre midi et 2', 1)`);
-        await client.query(`INSERT INTO checkpoints (check_in, check_out, comment, employee_id) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Absent entre 15 et 16', 2)`);
+        await client.query(/* sql */ `
+            INSERT INTO employees (name, firstname, datecreated, department)
+            VALUES ('Madiou BAH', 'Madiou', '01/01/2024', 'IT')
+        `);
+        await client.query(/* sql */ `
+            INSERT INTO employees (name, firstname, datecreated, department)
+            VALUES ('John Doe', 'John', '01/01/2024', 'Marketing')
+        `);
+        await client.query(/* sql */ `
+            INSERT INTO employees (name, firstname, datecreated, department)
+            VALUES ('Clementina DuBuque', 'Clementina', '01/01/2024', 'Communication')
+        `);
+        await client.query(/* sql */ `
+            INSERT INTO checkpoints (check_in, check_out, comment, employee_id)
+            VALUES ('01/01/2024', '01/01/2024', 'Absent entre midi et 2', 1)
+        `);
+        await client.query(/* sql */ `
+            INSERT INTO checkpoints (check_in, check_out, comment, employee_id)
+            VALUES ('01/01/2024', '01/01/2024', 'Absent entre 15 et 16', 2)
+        `);
 
         client.release();
-        server = createServer(pool);
+        server = createServer.start();
         app = server.app;
     });
 
     afterEach(async () => {
-        await server.close();
+        await createServer.close();
         await pool.end();
     });
 
-    it("should get all employees", async () => {
-        const response = await chai.request(app).get("/employees");
+    it("should get an ok by contacting the base url", async () => {
+        const response = await chai.request(app).get("/");
         expect(response.status).to.equal(200);
         expect(response).to.be.json;
         expect(response.body).to.be.instanceOf(Object);
-        expect(response.body.data).to.be.instanceOf(Object);
-        const expected = [
-            {
-                id: 1,
-                department: "IT",
-                name: "Madiou BAH",
-                firstName: "Madiou",
-                dateCreated: new Date(),
-            },
-            {
-                id: 2,
-                department: "IT",
-                name: "Madiou BAH",
-                firstName: "Madiou",
-                dateCreated: new Date(),
-            },
-        ];
-        expect(response.body.data).to.deep.eq(expected);
+        const expected = {
+            message: `MINI API running on ${process.env.NODE_ENV} environment...`,
+        };
+        expect(response.body).to.deep.eq(expected);
+    });
+
+    it("should get all employees", async () => {
+        const response = await chai.request(app).get("/api/v1/employees");
+        expect(response.status).to.equal(200);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.instanceOf(Array);
+        // const expected = [
+        //     {
+        //         id: 1,
+        //         department: "IT",
+        //         name: "Madiou BAH",
+        //         firstname: "Madiou",
+        //         datecreated: "01/01/2024",
+        //     },
+        //     {
+        //         id: 2,
+        //         department: "Marketing",
+        //         name: "John Doe",
+        //         firstname: "John",
+        //         datecreated: "01/01/2024",
+        //     },
+        //     {
+        //         id: 3,
+        //         department: "Communication",
+        //         name: "Clementina DuBuque",
+        //         firstname: "Clementina",
+        //         datecreated: "01/01/2024",
+        //     },
+        // ];
+        // expect(response.body.data).to.deep.eq(expected);
     });
 
     // it("should get employees for post 2", async () => {

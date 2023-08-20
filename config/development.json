@@ -1,0 +1,7 @@
+{
+    "env": "development",
+    "app": {
+        "port": 3000
+    },
+    "db": "postgresql://root:root@localhost:5432/postgres"
+}
