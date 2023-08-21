@@ -160,6 +160,29 @@ describe("server", () => {
         expect(response.body.data).to.deep.eq(expected);
     });
 
+    it("should post an employee and get bad error", async () => {
+        const data = {
+            name: "Hind Chihi",
+            // firstname: "Hind",
+            department: "Recrutement",
+        };
+        const response = await chai
+            .request(app)
+            .post("/api/v1/employees")
+            .send(data);
+        expect(response.status).to.equal(400);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.equal(null);
+        const expected: any = {
+            error: "ValidationError",
+            code: 400,
+            message: '"firstname" is required',
+            data: null,
+        };
+        expect(response.body).to.deep.eq(expected);
+    });
+
     it("should return a 404 for unkown url", async () => {
         const response = await chai.request(app).get("/api/v1/not_found");
         expect(response.status).to.equal(404);
