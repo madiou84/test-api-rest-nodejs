@@ -7,8 +7,8 @@ import errorHandler, {
     ErrorSender,
     handleUnknownExceptions,
 } from "../middlewares/errorHandler";
-import openApiDocument from "./openApiDoc";
 import logger from "../middlewares/logger";
+import { swagger } from "./swagger";
 
 const environment: string = config.get("env");
 
@@ -31,12 +31,12 @@ const routes = (app: Application) => {
     });
 
     // API docs hanlder
-    app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(openApiDocument));
+    app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swagger));
 
     // URLs of application
     app.use(baseUrl, Routes);
 
-    // Error handler
+    // // Error handler
     app.use(errorHandler);
     app.use(handleUnknownExceptions);
 };
