@@ -3,5 +3,5 @@
     "app": {
         "port": 5000
     },
-    "db": "postgresql://root:root@localhost:5432/postgres"
+    "db": "postgresql://root:root@localhost:5432/minitpprod"
 }

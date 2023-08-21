@@ -2,6 +2,7 @@ import chai from "chai";
 import chaiHttp from "chai-http";
 import config from "config";
 import { Pool } from "pg";
+import { formatDate } from "../../src/utils";
 import createServer from "../../src/providers/server";
 
 chai.use(chaiHttp);
@@ -44,23 +45,23 @@ describe("server", () => {
 
         await client.query(/* sql */ `
             INSERT INTO employees (name, firstname, datecreated, department)
-            VALUES ('Madiou BAH', 'Madiou', '01/01/2024', 'IT')
+            VALUES ('Madiou BAH', 'Madiou', '2023-08-22', 'IT')
         `);
         await client.query(/* sql */ `
             INSERT INTO employees (name, firstname, datecreated, department)
-            VALUES ('John Doe', 'John', '01/01/2024', 'Marketing')
+            VALUES ('John Doe', 'John', '2023-07-22', 'Marketing')
         `);
         await client.query(/* sql */ `
             INSERT INTO employees (name, firstname, datecreated, department)
-            VALUES ('Clementina DuBuque', 'Clementina', '01/01/2024', 'Communication')
+            VALUES ('Clementina DuBuque', 'Clementina', '2023-06-22', 'Communication')
         `);
         await client.query(/* sql */ `
             INSERT INTO checkpoints (check_in, check_out, comment, employee_id)
-            VALUES ('01/01/2024', '01/01/2024', 'Absent entre midi et 2', 1)
+            VALUES ('2023-06-22', '2023-06-22', 'Absent entre midi et 2', 1)
         `);
         await client.query(/* sql */ `
             INSERT INTO checkpoints (check_in, check_out, comment, employee_id)
-            VALUES ('01/01/2024', '01/01/2024', 'Absent entre 15 et 16', 2)
+            VALUES ('2023-06-22', '2023-06-22', 'Absent entre 15 et 16', 2)
         `);
 
         client.release();
@@ -96,21 +97,41 @@ describe("server", () => {
                 department: "IT",
                 name: "Madiou BAH",
                 firstname: "Madiou",
-                datecreated: "01/01/2024",
+                datecreated: "2023-08-22",
             },
             {
                 id: 2,
                 department: "Marketing",
                 name: "John Doe",
                 firstname: "John",
-                datecreated: "01/01/2024",
+                datecreated: "2023-07-22",
             },
             {
                 id: 3,
                 department: "Communication",
                 name: "Clementina DuBuque",
                 firstname: "Clementina",
-                datecreated: "01/01/2024",
+                datecreated: "2023-06-22",
+            },
+        ];
+        expect(response.body.data).to.deep.eq(expected);
+    });
+
+    it("should get all employees by date filter", async () => {
+        const response = await chai
+            .request(app)
+            .get("/api/v1/employees?byDate=2023-08-21");
+        expect(response.status).to.equal(200);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.instanceOf(Array);
+        const expected = [
+            {
+                id: 1,
+                department: "IT",
+                name: "Madiou BAH",
+                firstname: "Madiou",
+                datecreated: "2023-08-22",
             },
         ];
         expect(response.body.data).to.deep.eq(expected);
@@ -130,27 +151,14 @@ describe("server", () => {
         expect(response).to.be.json;
         expect(response.body).to.be.instanceOf(Object);
         expect(response.body.data).to.be.instanceOf(Object);
-        // In the before we have 3 insert in database
+        // We have previously 3 insert 3 line in the function (before) hence the id 4
         const expected = {
             ...data,
             id: 4,
-            datecreated: new Date().toDateString(),
+            datecreated: formatDate(new Date()),
         };
         expect(response.body.data).to.deep.eq(expected);
     });
-
-    // it("should get employees for post 2", async () => {
-    //     const response = await chai.request(app).get("/checkpoints/2/employees");
-    //     expect(response.status).to.equal(200);
-    //     expect(response).to.be.json;
-    //     expect(response.body).to.be.instanceOf(Object);
-    //     expect(response.body.data).to.be.instanceOf(Object);
-    //     const expected = [
-    //         { id: 5, text: "comment 2.1" },
-    //         { id: 6, text: "comment 2.2" },
-    //     ];
-    //     expect(response.body.data).to.deep.eq(expected);
-    // });
 
     it("should return a 404 for unkown url", async () => {
         const response = await chai.request(app).get("/api/v1/not_found");

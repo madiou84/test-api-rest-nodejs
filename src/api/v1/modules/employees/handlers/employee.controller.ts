@@ -7,9 +7,10 @@ export const getAllEmployeeHandler = async (
     res: Response,
     next: NextFunction
 ) => {
+    const byDate: string = req.query?.byDate as any as string;
     try {
         const { code, error, message, data } =
-            await employeeService.getAllEmployees();
+            await employeeService.getAllEmployees({ byDate });
         return res.status(200).json({ code, error, message, data });
     } catch (error) {
         next({

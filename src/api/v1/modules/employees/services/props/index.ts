@@ -3,7 +3,7 @@ export const defaultValueQueryParams = {
     limit: 10,
 };
 
-export type QueryParams = { offset: number; limit: number };
+export type QueryParams = { offset?: number; limit?: number; byDate?: string };
 
 export class SaveNewEmployeeRequest {
     constructor(
