@@ -1,8 +1,9 @@
+import "reflect-metadata";
 import logger from "./middlewares/logger";
-import { connect } from "./providers/db";
+import dataSource from "./providers/db";
 import server from "./providers/server";
 
-connect().then(() => {
+dataSource.pool.connect().then(() => {
     server.start();
 });
 

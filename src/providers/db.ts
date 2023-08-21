@@ -10,19 +10,28 @@ pool.on("connect", () => {
     logger.info(`Connect to Postgresql database via ${connectionString}`);
 });
 
-export const connect = () => pool.connect();
+pool.on("error", (err, client) => {
+    logger.error("Unexpected error on idle client", err.stack);
+    process.exit(-1);
+});
 
-export const query = async (text: string, values?: any) => {
-    const client = await connect();
-    const { rows } = await client.query(text, values);
+export const query = async <T>(text: string, values?: T[]) => {
+    const client = await pool.connect();
 
-    client.release();
-
-    return rows;
+    try {
+        await client.query("BEGIN");
+        const { rows } = await client.query({ text, values });
+        await client.query("COMMIT");
+        return rows;
+    } catch (e) {
+        await client.query("ROLLBACK");
+        throw e;
+    } finally {
+        client.release();
+    }
 };
 
 export default {
     query,
     pool,
-    connect,
 };

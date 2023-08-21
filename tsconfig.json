@@ -12,7 +12,8 @@
         "baseUrl": "./src",
         "allowJs": true,
         "skipLibCheck": true,
-        "declaration": true
+        "declaration": true,
+        "emitDecoratorMetadata": true
     },
     "include": ["src/**/*.ts", "tests/**/*.ts"],
     "exclude": ["node_modules"]

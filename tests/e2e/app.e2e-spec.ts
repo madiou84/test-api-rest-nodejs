@@ -2,7 +2,6 @@ import chai from "chai";
 import chaiHttp from "chai-http";
 import config from "config";
 import { Pool } from "pg";
-import poolClient from "../../src/providers/db";
 import createServer from "../../src/providers/server";
 
 chai.use(chaiHttp);
@@ -26,15 +25,15 @@ describe("server", () => {
             id SERIAL PRIMARY KEY,
             name VARCHAR NOT NULL,
             firstname VARCHAR NOT NULL,
-            datecreated DATE NOT NULL,
+            datecreated VARCHAR NOT NULL,
             department VARCHAR
           )
         `);
         await client.query(/* sql */ `
           CREATE TABLE IF NOT EXISTS checkpoints (
             id SERIAL PRIMARY KEY,
-            check_in DATE NOT NULL,
-            check_out DATE NOT NULL,
+            check_in VARCHAR NOT NULL,
+            check_out VARCHAR NOT NULL,
             comment TEXT,
             employee_id INT,
             CONSTRAINT fk_employee_id
@@ -91,30 +90,53 @@ describe("server", () => {
         expect(response).to.be.json;
         expect(response.body).to.be.instanceOf(Object);
         expect(response.body.data).to.be.instanceOf(Array);
-        // const expected = [
-        //     {
-        //         id: 1,
-        //         department: "IT",
-        //         name: "Madiou BAH",
-        //         firstname: "Madiou",
-        //         datecreated: "01/01/2024",
-        //     },
-        //     {
-        //         id: 2,
-        //         department: "Marketing",
-        //         name: "John Doe",
-        //         firstname: "John",
-        //         datecreated: "01/01/2024",
-        //     },
-        //     {
-        //         id: 3,
-        //         department: "Communication",
-        //         name: "Clementina DuBuque",
-        //         firstname: "Clementina",
-        //         datecreated: "01/01/2024",
-        //     },
-        // ];
-        // expect(response.body.data).to.deep.eq(expected);
+        const expected = [
+            {
+                id: 1,
+                department: "IT",
+                name: "Madiou BAH",
+                firstname: "Madiou",
+                datecreated: "01/01/2024",
+            },
+            {
+                id: 2,
+                department: "Marketing",
+                name: "John Doe",
+                firstname: "John",
+                datecreated: "01/01/2024",
+            },
+            {
+                id: 3,
+                department: "Communication",
+                name: "Clementina DuBuque",
+                firstname: "Clementina",
+                datecreated: "01/01/2024",
+            },
+        ];
+        expect(response.body.data).to.deep.eq(expected);
+    });
+
+    it("should post and save an employee", async () => {
+        const data = {
+            name: "Hind Chihi",
+            firstname: "Hind",
+            department: "Recrutement",
+        };
+        const response = await chai
+            .request(app)
+            .post("/api/v1/employees")
+            .send(data);
+        expect(response.status).to.equal(200);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.instanceOf(Object);
+        // In the before we have 3 insert in database
+        const expected = {
+            ...data,
+            id: 4,
+            datecreated: new Date().toDateString(),
+        };
+        expect(response.body.data).to.deep.eq(expected);
     });
 
     // it("should get employees for post 2", async () => {
@@ -130,8 +152,8 @@ describe("server", () => {
     //     expect(response.body.data).to.deep.eq(expected);
     // });
 
-    // it("should return a 404 for post 3", async () => {
-    //     const response = await chai.request(app).get("/checkpoints/3/employees");
-    //     expect(response.status).to.equal(404);
-    // });
+    it("should return a 404 for unkown url", async () => {
+        const response = await chai.request(app).get("/api/v1/not_found");
+        expect(response.status).to.equal(404);
+    });
 });

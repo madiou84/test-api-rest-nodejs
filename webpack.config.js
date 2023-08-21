@@ -8,6 +8,7 @@ module.exports = {
     target: "node",
     entry: "./src/index.ts",
     mode: NODE_ENV || "none",
+    stats: { warnings: false },
     watch: NODE_ENV === "development",
     output: {
         libraryTarget: "commonjs2",

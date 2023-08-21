@@ -2,16 +2,16 @@ import config from "config";
 import http from "http";
 import logger from "../middlewares/logger";
 import app from "./app";
-import { Pool } from "pg";
 
 const port = +config.get("app.port");
 const server = http.createServer(app);
+const environment: string = config.get("env");
 
 const onListening = (): void => {
     const addr = server.address();
     const addrIsStr = typeof addr === "string";
     const bind = addrIsStr ? `pipe ${addr}` : `port ${addr.port}`;
-    logger.debug(`[Server] is running on ${bind}`);
+    logger.debug(`[Server] is running on ${bind} with ${environment}`);
     logger.info("Press CTRL-C to stop\n");
 };
 const onError = (error: NodeJS.ErrnoException): void => {

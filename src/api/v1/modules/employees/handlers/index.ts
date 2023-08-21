@@ -1,5 +1,9 @@
-import getAllEmployeeHandler from "./employee.controller";
+import {
+    saveNewEmployeeHandler,
+    getAllEmployeeHandler,
+} from "./employee.controller";
 
 export default {
     getAllEmployeeHandler,
+    saveNewEmployeeHandler,
 };
