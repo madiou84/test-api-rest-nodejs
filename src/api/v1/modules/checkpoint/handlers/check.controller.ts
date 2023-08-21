@@ -1,16 +1,19 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { employeeService } from "../services/employee.service";
+import { checkService } from "../services/check.service";
 
-export const getAllEmployeeHandler = async (
+export const saveNewCheckInHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    const byDate: string = req.query?.byDate as any as string;
     try {
+        const { identifiantEmployee, commantaire } = req.body;
         const { code, error, message, data } =
-            await employeeService.getAllEmployees({ byDate });
+            await checkService.saveNewCheckIn({
+                identifiantEmployee,
+                commantaire,
+            });
         return res.status(code).json({ code, error, message, data });
     } catch (error) {
         next({
@@ -22,18 +25,17 @@ export const getAllEmployeeHandler = async (
     }
 };
 
-export const saveNewEmployeeHandler = async (
+export const saveNewCheckOutHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
     try {
-        const { name, firstname, department } = req.body;
+        const { identifiantEmployee, commantaire } = req.body;
         const { code, error, message, data } =
-            await employeeService.saveNewEmployee({
-                name,
-                firstname,
-                department,
+            await checkService.saveNewCheckOut({
+                identifiantEmployee,
+                commantaire,
             });
         return res.status(code).json({ code, error, message, data });
     } catch (error) {

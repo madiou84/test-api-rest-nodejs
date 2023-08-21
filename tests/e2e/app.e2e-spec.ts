@@ -34,7 +34,7 @@ describe("server", () => {
           CREATE TABLE IF NOT EXISTS checkpoints (
             id SERIAL PRIMARY KEY,
             check_in VARCHAR NOT NULL,
-            check_out VARCHAR NOT NULL,
+            check_out VARCHAR,
             comment TEXT,
             employee_id INT,
             CONSTRAINT fk_employee_id
@@ -83,6 +83,11 @@ describe("server", () => {
             message: `MINI API running on ${process.env.NODE_ENV} environment...`,
         };
         expect(response.body).to.deep.eq(expected);
+    });
+
+    it("should return a 404 for unkown url", async () => {
+        const response = await chai.request(app).get("/api/v1/not_found");
+        expect(response.status).to.equal(404);
     });
 
     it("should get all employees", async () => {
@@ -183,8 +188,112 @@ describe("server", () => {
         expect(response.body).to.deep.eq(expected);
     });
 
-    it("should return a 404 for unkown url", async () => {
-        const response = await chai.request(app).get("/api/v1/not_found");
-        expect(response.status).to.equal(404);
+    it("should post a new check-in", async () => {
+        const data = {
+            identifiantEmployee: 1,
+            commantaire: "Ebsent entre midi et 2",
+        };
+
+        let response = await chai
+            .request(app)
+            .post("/api/v1/check-in")
+            .send(data);
+        expect(response.status).to.equal(200);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.instanceOf(Object);
+        expect(response.body.data.employee_id).to.be.equal(1);
+        expect(response.body.data.comment).to.be.equal(
+            "Ebsent entre midi et 2"
+        );
+        expect(response.body.data.check_out).to.be.equal("");
+
+        response = await chai.request(app).post("/api/v1/check-in").send(data);
+        expect(response.status).to.equal(400);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.equal(null);
+        const expected: any = {
+            code: 400,
+            data: null,
+            error: null,
+            message: "Check-in has been marked for today",
+        };
+        expect(response.body).to.be.deep.eq(expected);
+    });
+
+    it("should get an error validation to check-in with bad data", async () => {
+        const data = {
+            // identifiantEmployee: 1,
+            commantaire: "Recrutement",
+        };
+
+        let response = await chai
+            .request(app)
+            .post("/api/v1/check-in")
+            .send(data);
+        expect(response.status).to.equal(400);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.eq(null);
+        expect(response.body.error).to.be.eq("ValidationError");
+        expect(response.body.message).to.be.eq(
+            '"identifiantEmployee" is required'
+        );
+        const expected: any = {
+            code: 400,
+            data: null,
+            error: "ValidationError",
+            message: '"identifiantEmployee" is required',
+        };
+        expect(response.body).to.be.deep.eq(expected);
+    });
+
+    it("should post a new check-out", async () => {
+        const data = {
+            identifiantEmployee: 1,
+            commantaire: "Ebsent entre midi et 2",
+        };
+
+        await chai.request(app).post("/api/v1/check-in").send(data);
+
+        let response = await chai
+            .request(app)
+            .post("/api/v1/check-out")
+            .send(data);
+        expect(response.status).to.equal(200);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.instanceOf(Object);
+        expect(response.body.data.employee_id).to.be.equal(1);
+        expect(response.body.data.comment).to.be.equal(
+            "Ebsent entre midi et 2"
+        );
+    });
+
+    it("should get an error validation to check-out with bad data", async () => {
+        let data = {
+            identifiantEmployee: 1,
+            commantaire: "Ebsent entre midi et 2",
+        };
+
+        await chai.request(app).post("/api/v1/check-in").send(data);
+
+        delete data.identifiantEmployee;
+        let response = await chai
+            .request(app)
+            .post("/api/v1/check-out")
+            .send(data);
+        expect(response.status).to.equal(400);
+        expect(response).to.be.json;
+        expect(response.body).to.be.instanceOf(Object);
+        expect(response.body.data).to.be.eq(null);
+        const expected: any = {
+            error: "ValidationError",
+            code: 400,
+            message: '"identifiantEmployee" is required',
+            data: null,
+        };
+        expect(response.body).to.be.deep.equal(expected);
     });
 });
