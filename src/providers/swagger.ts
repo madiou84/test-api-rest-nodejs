@@ -1,5 +1,5 @@
-import { getAllEmployees } from "api/v1/modules/employees/docs/getEmployees.openapi";
-import { acceptEmployeeRequest as SaveNewEmployee } from "api/v1/modules/employees/docs/saveNewEmployee.openapi";
+import { getAllEmployees } from "../api/v1/modules/employees/docs/getEmployees.openapi";
+import { acceptEmployeeRequest as SaveNewEmployee } from "../api/v1/modules/employees/docs/saveNewEmployee.openapi";
 
 export const swagger = {
     openapi: "3.0.3",
